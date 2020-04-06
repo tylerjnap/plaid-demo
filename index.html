@@ -1,0 +1,73 @@
+<html>
+<!--=================================================
+    STYLES AND PAGE INSTRUCTIONS. IGNORE THIS STUFF
+    =================================================-->
+<head>
+  <link rel="stylesheet" href="https://plaid.com/assets/css/app.css?t=1572387277430">
+  <style>
+    .outer { justify-self: center; margin: 20% auto 120px auto; width: 60%; } #link-button:hover { background: #23D09C; } a { text-decoration: underline; } li { padding-left: 1rem; }
+  </style>
+</head>
+<body>
+    <div class="outer">
+      <h4 class="mb2">Plaid Link + API Demo</h4>
+      <ol class="mb3">
+        <li>Initalize Plaid Link</li>
+        <li>User enters financial institutation credentials (u: <code>user_good</code>; p: <code>pass_good</code> for Sandbox)</li>
+        <li>Plaid Link generates <code><b>public_token</b></code></li>
+        <li>Send <code><b>public_token</b></code> to backend</li>
+        <li>Exchange <code><b>public_token</b></code> for <code><b>access_token</b></code> via Plaid's <code>/exchange/token</code> API</li>
+        <li>Persist <code><b>access_token</b></code> in datastore in relation to user</li>
+        <li>Use <code><b>access_token</b></code> to retrieve <b>account & routing</b> numbers via Plaid's <code>/auth/get</code> API</li>
+        <li>Persist <b>account & routing</b> numbers in relation to user</li>
+      </ol>
+      <button id="link-button" class="button button-cta">Link Account</button>
+    </div
+​
+​
+<!--=================================================
+    PLAID SCRIPTS. HERE'S THE STUFF YOU'LL EDIT!
+    =================================================-->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+  <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+  <script type="text/javascript">
+  (function($) {
+    var handler = Plaid.create({
+      clientName: 'Onboarding example',
+      env: 'sandbox',
+      key: 'ENTER_PLAID_PUBLIC_KEY', // Found here in dashboard - https://dashboard.plaid.com/team/keys
+      webhook: 'https://en47olm04bzsy.x.pipedream.net/',
+      countryCodes: ['US'],
+      apiVersion: 'v2',
+      product: ['auth', 'identity', 'transactions'],
+      userLegalName: 'John Appleseed',
+      userEmailAddress: 'jappleseed@youapp.com',
+      // accountSubtypes: {
+      //   depository: ['checking', 'savings'],
+      // },
+      onSuccess: function(public_token, metadata) {
+        console.log('-----');
+        console.log('onSuccess callback');
+        console.log('public token is', public_token);
+        console.log(metadata)
+        $.post('/get-access-token', {
+          publicToken: public_token,
+        });
+      },
+      onExit: function(err, metadata) {
+        console.log('-----');
+        console.log('onExit callback');
+        console.log('onExit metadata', metadata);
+      },
+      onEvent: function(eventName, metadata) {
+        console.log('-----');
+        console.log('onEvent callback');
+        console.log('event name is', eventName);
+      }
+    });
+    $('#link-button').on('click', function(e) { handler.open() });
+  })(jQuery);
+  </script>
+​
+</body>
+</html>
