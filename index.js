@@ -38,6 +38,8 @@ app.post('/get-access-token', async (req, res) => {
     const { publicToken } = req.body;
     const tokenResponse = await plaidClient.exchangePublicToken(publicToken);
     PLAID_ACCESS_TOKEN = tokenResponse.access_token;
+    console.log('-----');
+    console.log(PLAID_ACCESS_TOKEN);
 
     // Call Auth API to obtain user's account & routing numbers
     // Persist account & routing numbers in datastore in relation to user

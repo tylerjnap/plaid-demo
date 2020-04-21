@@ -49,7 +49,7 @@
         console.log('-----');
         console.log('onSuccess callback');
         console.log('public token is', public_token);
-        console.log(metadata)
+        console.log('onSuccess metadata is', metadata);
         $.post('/get-access-token', {
           publicToken: public_token,
         });
@@ -57,12 +57,13 @@
       onExit: function(err, metadata) {
         console.log('-----');
         console.log('onExit callback');
-        console.log('onExit metadata', metadata);
+        console.log('onExit metadata is', metadata);
       },
       onEvent: function(eventName, metadata) {
         console.log('-----');
         console.log('onEvent callback');
         console.log('event name is', eventName);
+        console.log('onEvent metadata is', metadata);
       }
     });
     $('#link-button').on('click', function(e) { handler.open() });
