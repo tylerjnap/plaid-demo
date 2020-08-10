@@ -7,27 +7,44 @@ const path = require('path');
 const util = require('util');
 
 // Found here in dashboard - https://dashboard.plaid.com/team/keys
-const PLAID_CLIENT_ID = 'ENTER_PLAID_CLIENT_ID';
-const PLAID_SECRET = 'ENTER_PLAID_SECRET';
-const PLAID_PUBLIC_KEY = 'ENTER_PLAID_PUBLIC_KEY';
+const PLAID_CLIENT_ID = 'INSERT_CLIEND_ID';
+const PLAID_SECRET = 'INSERT_PLAID_SECRET';
 
 // Persist in datastore in relation to user
 // note: persisted here in memory for demo purposes
 let PLAID_ACCESS_TOKEN = null;
 
 const plaid = require('plaid');
-const plaidClient = new plaid.Client(
-  PLAID_CLIENT_ID,
-  PLAID_SECRET,
-  PLAID_PUBLIC_KEY,
-  plaid.environments.sandbox
-);
+const plaidClient = new plaid.Client({
+  clientID: PLAID_CLIENT_ID,
+  secret: PLAID_SECRET,
+  env: plaid.environments.sandbox
+});
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.post('/create-link-token', async (request, response) => {
+  try {
+    const { link_token: linkToken } = await plaidClient.createLinkToken({
+      user: {
+        client_user_id: 'userID-123',
+      },
+      client_name: 'My App',
+      products: ['auth', 'identity', 'transactions'],
+      country_codes: ['US'],
+      language: 'en',
+      webhook: 'https://sample.webhook.com',
+    });
+    response.json({ linkToken });
+  } catch (e) {
+    console.log(e);
+    res.sendStatus(500);
+  }
 });
 
 app.post('/get-access-token', async (req, res) => {
@@ -54,9 +71,6 @@ app.post('/get-access-token', async (req, res) => {
     console.log('Identity response:');
     console.log(util.inspect(identityResponse, false, null, true));
 
-    // note: only need to call Balance API for ongoing payments
-    // b/c Auth API will return balance at time of request for
-    // account & routing numbers
     const balanceResponse = await plaidClient.getBalance(PLAID_ACCESS_TOKEN);
     console.log('-----');
     console.log('Balance response:');

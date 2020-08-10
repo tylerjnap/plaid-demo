@@ -31,20 +31,15 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
   <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
   <script type="text/javascript">
-  (function($) {
-    var handler = Plaid.create({
-      clientName: 'Onboarding example',
-      env: 'sandbox',
-      key: 'ENTER_PLAID_PUBLIC_KEY', // Found here in dashboard - https://dashboard.plaid.com/team/keys
-      webhook: 'https://en47olm04bzsy.x.pipedream.net/',
-      countryCodes: ['US'],
-      apiVersion: 'v2',
-      product: ['auth', 'identity', 'transactions'],
-      userLegalName: 'John Appleseed',
-      userEmailAddress: 'jappleseed@youapp.com',
-      // accountSubtypes: {
-      //   depository: ['checking', 'savings'],
-      // },
+  (async function($) {
+    const fetchLinkToken = async () => {
+      const response = await fetch('/create-link-token', { method: 'POST' });
+      const { linkToken } = await response.json();
+      return linkToken;
+    };
+
+    const configs = {
+      token: await fetchLinkToken(),
       onSuccess: function(public_token, metadata) {
         console.log('-----');
         console.log('onSuccess callback');
@@ -65,7 +60,9 @@
         console.log('event name is', eventName);
         console.log('onEvent metadata is', metadata);
       }
-    });
+    };
+
+    const handler = await Plaid.create(configs);
     $('#link-button').on('click', function(e) { handler.open() });
   })(jQuery);
   </script>
