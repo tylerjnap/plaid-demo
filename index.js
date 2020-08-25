@@ -7,8 +7,8 @@ const path = require('path');
 const util = require('util');
 
 // Found here in dashboard - https://dashboard.plaid.com/team/keys
-const PLAID_CLIENT_ID = 'INSERT_CLIEND_ID';
-const PLAID_SECRET = 'INSERT_PLAID_SECRET';
+const PLAID_CLIENT_ID = 'CLIENT_ID';
+const PLAID_SECRET = 'SECRET_KEY';
 
 // Persist in datastore in relation to user
 // note: persisted here in memory for demo purposes
@@ -18,7 +18,7 @@ const plaid = require('plaid');
 const plaidClient = new plaid.Client({
   clientID: PLAID_CLIENT_ID,
   secret: PLAID_SECRET,
-  env: plaid.environments.sandbox
+  env: plaid.environments.sandbox,
 });
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -28,6 +28,34 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+app.get('/create-direct-deposit-switch-token', async (req, res) => {
+  try {
+    const itemImportResponse = await plaidClient.importItem(
+      ['auth', 'identity'],
+      {
+        user_id: 'user_good',
+        auth_token: 'pass_good',
+      }
+    );
+    const { access_token: accessToken } = itemImportResponse;
+
+    const accountsReponse = await plaidClient.getAccounts(accessToken);
+    const { accounts } = accountsReponse;
+    const [account] = accounts;
+    const { account_id: accountId } = account;
+
+    const depositSwitchResponse = await plaidClient.createDepositSwitch(accountId, accessToken);
+    const { deposit_switch_id: depositSwitchId } = depositSwitchResponse;
+
+    const depositSwitchTokenReponse = await plaidClient.createDepositSwitchToken(depositSwitchId);
+    const { deposit_switch_token: depositSwitchToken } = depositSwitchTokenReponse;
+
+    res.json({ depositSwitchToken });
+  } catch(e) {
+    res.sendStatus(500);
+  }
+});
+
 app.post('/create-link-token', async (request, response) => {
   try {
     const { link_token: linkToken } = await plaidClient.createLinkToken({
@@ -35,10 +63,11 @@ app.post('/create-link-token', async (request, response) => {
         client_user_id: 'userID-123',
       },
       client_name: 'My App',
-      products: ['auth', 'identity', 'transactions'],
+      // products: ['auth'],
       country_codes: ['US'],
       language: 'en',
       webhook: 'https://sample.webhook.com',
+      access_token: 'access-sandbox-c6d4de54-c705-4cd4-9f71-5bca3a7cb8e9',
     });
     response.json({ linkToken });
   } catch (e) {

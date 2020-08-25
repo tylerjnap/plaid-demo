@@ -32,15 +32,19 @@
   <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
   <script type="text/javascript">
   (async function($) {
-    const fetchLinkToken = async () => {
-      const response = await fetch('/create-link-token', { method: 'POST' });
-      const { linkToken } = await response.json();
-      return linkToken;
+    const fetchDepositSwitchToken = async () => {
+      const response = await fetch('/create-direct-deposit-switch-token');
+      const { depositSwitchToken } = await response.json();
+      return depositSwitchToken;
     };
 
     const configs = {
-      token: await fetchLinkToken(),
-      onSuccess: function(public_token, metadata) {
+      clientName: 'Tyler\'s Test',
+      env: 'sandbox',
+      product: ['deposit_switch'],
+      token: await fetchDepositSwitchToken(),
+      key: 'PUBLIC_KEY',
+      onSuccess: function() {
         console.log('-----');
         console.log('onSuccess callback');
         console.log('public token is', public_token);
