@@ -7,8 +7,8 @@ const path = require('path');
 const util = require('util');
 
 // Found here in dashboard - https://dashboard.plaid.com/team/keys
-const PLAID_CLIENT_ID = 'CLIENT_ID';
-const PLAID_SECRET = 'SECRET_KEY';
+const PLAID_CLIENT_ID = 'INSERT_CLIENT_ID';
+const PLAID_SECRET = 'INSERT_SECRET';
 
 // Persist in datastore in relation to user
 // note: persisted here in memory for demo purposes
